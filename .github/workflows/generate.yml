@@ -1,0 +1,32 @@
+name: Auto Update Hashes
+
+on:
+  repository_dispatch:
+    types: [external_commit_trigger]
+  workflow_dispatch:
+
+jobs:
+  update-files:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: python -m pip install requests
+      - name: Run hash generator script
+        run: python generate.py
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add hashes.txt
+          git diff-index --quiet HEAD || git commit -m "Update hashes"
+          git push
